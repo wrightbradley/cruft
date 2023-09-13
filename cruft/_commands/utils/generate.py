@@ -40,8 +40,10 @@ def cookiecutter_template(
 
     repo.head.reset(commit=commit, working_tree=True)
 
-    assert repo.working_dir is not None  # nosec B101 (allow assert for type checking)
-    context = _generate_output(cruft_state, Path(repo.working_dir), cookiecutter_input, output_dir)
+    # nosec B101 (allow assert for type checking)
+    assert repo.working_dir is not None
+    context = _generate_output(cruft_state, Path(
+        repo.working_dir), cookiecutter_input, output_dir)
 
     # Get all paths that we are supposed to skip before generating the diff and applying updates
     skip_paths = _get_skip_paths(cruft_state, pyproject_file)
@@ -108,14 +110,15 @@ def _generate_output(
 def _get_skip_paths(cruft_state: CruftState, pyproject_file: Path) -> Set[Path]:
     skip_cruft = cruft_state.get("skip", [])
     if tomllib and pyproject_file.is_file():
-        pyproject_cruft = tomllib.loads(pyproject_file.read_text()).get("tool", {}).get("cruft", {})
+        pyproject_cruft = tomllib.loads(
+            pyproject_file.read_text()).get("tool", {}).get("cruft", {})
         skip_cruft.extend(pyproject_cruft.get("skip", []))
     elif pyproject_file.is_file():
         warn(
             "pyproject.toml is present in repo, but python version is < 3.11 and "
             "`toml` package is not installed. Cruft configuration may be ignored."
         )
-    return set(map(Path, skip_cruft))
+    return set(skip_cruft)
 
 
 def _get_deleted_files(template_dir: Path, project_dir: Path):
